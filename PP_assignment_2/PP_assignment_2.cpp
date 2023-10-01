@@ -75,44 +75,36 @@ public:
 };
 
 class LineEditor {
-private:
-    int indexSpecifier[3];
-
 public:
 
-    static void splitIntoArr(std::string userInput) {
+    static std::vector<size_t> splitIntoVector(const std::string& userInput) {
 
-        std::vector<int> nums;
-        std::istringstream gamer(userInput);
-
-        int number;
-
-        while (gamer >> number)
+        std::vector<size_t> tokens;
+        std::istringstream intString(userInput);
+        std::string token;
+        
+        while (std::getline(intString, token, ' '))
         {
-            nums.push_back(number);
+            tokens.push_back(std::stoul(token));
         }
 
-        for (int i = 0; i < nums.size(); i++)
-        {
-            indexSpecifier[i] = gamer[i];
-        }
+        return tokens;
     }
 
-    static void deleteString(std::vector<std::vector<std::string>>& userText) {
-
-        int lineIndex = indexSpecifier[0], int startIndex = indexSpecifier[1], int numOfChars = indexSpecifier[2];
+    static void deleteString(size_t lineIndex, size_t startIndex, size_t numOfChars, std::vector<std::vector<std::string>>& userText) {
 
         if (lineIndex >= 0 && lineIndex < userText.size()) {
 
-            if (startIndex >= 0 && startIndex + numofChars < userText[lineIndex].size()) {
-                userText[lineIndex].erase(startIndex, startIndex + numOfChars);
+            std::cout << userText[lineIndex][0].size() << "fuck my ass.\n";
+            if (startIndex >= 0 && startIndex + numOfChars < userText[lineIndex][0].size()) {
+                userText[lineIndex][0].erase(userText[lineIndex][0].begin() + startIndex, userText[lineIndex][0].begin() + startIndex + numOfChars);
             }
             else {
                 std::cerr << "\nerror: invalid line indices\n";
             }
         }
         else {
-            std::cerr << "\nerror: out of bounds index\n";
+            std::cerr << "\nerror: out of bounds line index\n";
         }
     }
 };
@@ -121,14 +113,17 @@ int main()
 {
     TextEditor userText(1);
     std::string textInput;
+    std::vector<size_t> indexSpecifier;
     int cmdType;
 
     std::string filename;
 
+    int testing = userText.userTextD.size();
+
     while (1) {
 
-        std::cout << "\nChoose a command (99 for vector info): ";
-        std::cin >> cmdType
+        std::cout << "\nChoose a command (Line: " << userText.userTextD.size() << "): ";
+        std::cin >> cmdType;
 
         switch (cmdType)
         {
@@ -145,13 +140,13 @@ int main()
             break;
         case 2:
 
-            userText.printText()
+            userText.printText();
             std::cout << "\n";
 
             break;
         case 3:
 
-            userText.addNewline()
+            userText.addNewline();
             std::cout << "\nNewline added.";
 
             break;
@@ -177,21 +172,37 @@ int main()
             std::cout << "\ntext read from file.";
 
             break;
-        case 8
+        case 8:
+            //error: vector subscript out of range.
+            std::cin.ignore();
+            std::cout << "\nSpecify line, starting index, and number of characters: ";
+            std::getline(std::cin, textInput);
 
-            std::cout << "\nSpecify line, starting index, and number of characters: "
-            std::getline(cin, textInput);
-
-            LineEditor::SplitIntoArr(textInput);
-            LineEditor::deleteString(userText.userTextD);
+            indexSpecifier = LineEditor::splitIntoVector(textInput);
+            LineEditor::deleteString(indexSpecifier[0],indexSpecifier[1], indexSpecifier[2], userText.userTextD);
 
             std::cout << "\nString deleted: " << textInput;
 
             break;
-        case 97
+        case 9:
+        {
+            /*
+            std::cin.ignore();
+            std::cout << "\n -- Test --- Specify line, starting index, and number of characters: ";
+            std::getline(std::cin, textInput);
+
+            std::vector<int> indices = LineEditor::splitIntoVector(textInput);
+
+            for (int token : indices) {
+                std::cout << token << " ";
+            }
+            */
+        }
+            break;
+        case 97:
             exit(0);
             break;
-        case 99
+        case 99:
             std::cout << "\nsize of vector: " << userText.userTextD.size() << "\n";
             break;
         default:
