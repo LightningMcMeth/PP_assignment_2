@@ -35,6 +35,7 @@ public:
 
 class FileManager {
 public:
+    //these can be used for undo/redo commands
     static void writeToFile(const std::string& fileName, std::vector<std::vector<std::string>>& userText) {
         std::ofstream file(fileName);
 
@@ -76,6 +77,7 @@ public:
 
 class LineEditor {
 public:
+    static std::string exchangeBuffer;  //the problem lies within this variable. Get a linker error when I try to use it.
 
     static std::vector<size_t> splitIntoVector(const std::string& userInput) {
 
@@ -95,8 +97,59 @@ public:
 
         if (lineIndex >= 0 && lineIndex < userText.size()) {
 
-            std::cout << userText[lineIndex][0].size() << "fuck my ass.\n";
             if (startIndex >= 0 && startIndex + numOfChars < userText[lineIndex][0].size()) {
+                userText[lineIndex][0].erase(userText[lineIndex][0].begin() + startIndex, userText[lineIndex][0].begin() + startIndex + numOfChars);
+            }
+            else {
+                std::cerr << "\nerror: invalid line indices\n";
+            }
+        }
+        else {
+            std::cerr << "\nerror: out of bounds line index\n";
+        }
+    }
+
+    static void cutString(size_t lineIndex, size_t startIndex, size_t numOfChars, std::vector<std::vector<std::string>>& userText, std::string& exchangeBuffer) {
+
+        if (lineIndex >= 0 && lineIndex < userText.size()) {
+
+            if (startIndex >= 0 && startIndex + numOfChars < userText[lineIndex][0].size()) {
+
+                exchangeBuffer = userText[lineIndex][0].substr(startIndex, numOfChars);
+                userText[lineIndex][0].erase(userText[lineIndex][0].begin() + startIndex, userText[lineIndex][0].begin() + startIndex + numOfChars);
+            }
+            else {
+                std::cerr << "\nerror: invalid line indices\n";
+            }
+        }
+        else {
+            std::cerr << "\nerror: out of bounds line index\n";
+        }
+    }
+
+    static void pasteString(size_t lineIndex, size_t startIndex, const std::vector<std::vector<std::string>>& userText, const std::string& exchangeBuffer) {
+        if (lineIndex >= 0 && lineIndex < userText.size()) {
+
+            if (startIndex >= 0) {
+
+                userText[lineIndex][0].insert(startIndex, exchangeBuffer);
+            }
+            else {
+                std::cerr << "\nerror: invalid line indices\n";
+            }
+        }
+        else {
+            std::cerr << "\nerror: out of bounds line index\n";
+        }
+    }
+
+    static void copyString(size_t lineIndex, size_t startIndex, size_t numOfChars, std::vector<std::vector<std::string>>& userText, std::string& exchangeBuffer) {
+
+        if (lineIndex >= 0 && lineIndex < userText.size()) {
+
+            if (startIndex >= 0 && startIndex + numOfChars < userText[lineIndex][0].size()) {
+
+                exchangeBuffer = userText[lineIndex][0].substr(startIndex, numOfChars);
                 userText[lineIndex][0].erase(userText[lineIndex][0].begin() + startIndex, userText[lineIndex][0].begin() + startIndex + numOfChars);
             }
             else {
@@ -112,13 +165,13 @@ public:
 int main()
 {
     TextEditor userText(1);
+
+    std::string exchangeBuffer;
     std::string textInput;
     std::vector<size_t> indexSpecifier;
-    int cmdType;
-
     std::string filename;
 
-    int testing = userText.userTextD.size();
+    int cmdType;
 
     while (1) {
 
@@ -173,7 +226,7 @@ int main()
 
             break;
         case 8:
-            //error: vector subscript out of range.
+
             std::cin.ignore();
             std::cout << "\nSpecify line, starting index, and number of characters: ";
             std::getline(std::cin, textInput);
@@ -181,29 +234,42 @@ int main()
             indexSpecifier = LineEditor::splitIntoVector(textInput);
             LineEditor::deleteString(indexSpecifier[0],indexSpecifier[1], indexSpecifier[2], userText.userTextD);
 
-            std::cout << "\nString deleted: " << textInput;
+            std::cout << "\nString deleted at: " << indexSpecifier[0] << indexSpecifier[1] << indexSpecifier[2];
 
             break;
-        case 9:
-        {
-            /*
+        case 11:
+
             std::cin.ignore();
-            std::cout << "\n -- Test --- Specify line, starting index, and number of characters: ";
+            std::cout << "\nSpecify line, starting index, and number of characters: ";
             std::getline(std::cin, textInput);
 
-            std::vector<int> indices = LineEditor::splitIntoVector(textInput);
+            indexSpecifier = LineEditor::splitIntoVector(textInput);
+            LineEditor::cutString(indexSpecifier[0], indexSpecifier[1], indexSpecifier[2], userText.userTextD, exchangeBuffer);
 
-            for (int token : indices) {
-                std::cout << token << " ";
-            }
-            */
-        }
+            std::cout << "\nString deleted at: " << indexSpecifier[0] << indexSpecifier[1] << indexSpecifier[2];
+
             break;
-        case 97:
-            exit(0);
+        case 12:
+
+            std::cin.ignore();
+            std::cout << "\nSpecify line, starting index, and number of characters: ";
+            std::getline(std::cin, textInput);
+
+            indexSpecifier = LineEditor::splitIntoVector(textInput);
+            LineEditor::pasteString(indexSpecifier[0], indexSpecifier[1], userText.userTextD, exchangeBuffer);
+
+            std::cout << "\nString deleted at: " << indexSpecifier[0] << indexSpecifier[1] << indexSpecifier[2];
+
+
+            break;
+        case 13:
+            break;
+        case 14:
+            break;
+        case 15:
             break;
         case 99:
-            std::cout << "\nsize of vector: " << userText.userTextD.size() << "\n";
+            exit(0);
             break;
         default:
             break;
