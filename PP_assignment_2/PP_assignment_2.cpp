@@ -193,9 +193,9 @@ public:
     }
 };
 
-int main()
-{
-    TextEditor userText(1);
+class Program {
+public:
+    TextEditor userText;
 
     std::string exchangeBuffer;
     std::string textInput;
@@ -204,139 +204,155 @@ int main()
 
     int cmdType;
 
-    while (1) {
+    Program() : userText(1), exchangeBuffer(""), textInput(""), filename(""), cmdType(0) {
+    }
 
-        std::cout << "\nChoose a command (Line: " << userText.userTextD.size() << "): ";
-        std::cin >> cmdType;
+    Program(int initialSize, const std::string& inputText, const std::vector<size_t>& indices, const std::string& file, int commandType)
+        : userText(initialSize), exchangeBuffer(""), textInput(inputText), indexSpecifier(indices), filename(file), cmdType(commandType) {
+    }
+
+    void run() {
+        while (1) {
+
+            std::cout << "\nChoose a command (Line: " << userText.userTextD.size() << "): ";
+            std::cin >> cmdType;
+
+            switch (cmdType)
+            {
+            case 1:
+
+                std::cin.ignore();
+                std::cout << "\nEnter text to append: ";
+
+                std::getline(std::cin, textInput);
+                userText.appendText(textInput);
+
+                std::cout << "\nText appended: " + textInput;
+
+                break;
+            case 2:
+
+                //printing num of chars per line doesn't work entirely properly after transition to class
+                userText.printText();
+                std::cout << "\n";
+
+                break;
+            case 3:
+
+                userText.addNewline();
+                std::cout << "\nNewline added.";
+
+                break;
+            case 4:
+
+                std::cin.ignore();
+                std::cout << "\nInput file name: ";
+                std::getline(std::cin, filename);
+
+                FileManager::writeToFile(filename, userText.userTextD);
+
+                std::cout << "\ntext written to file.";
+
+                break;
+            case 5:
+
+                std::cin.ignore();
+                std::cout << "\nInput file name: ";
+                std::getline(std::cin, filename);
+
+                FileManager::readFromFile(filename, userText.userTextD);
+
+                std::cout << "\ntext read from file.";
+
+                break;
+            case 8:
+
+                std::cin.ignore();
+                std::cout << "\nSpecify line, starting index, and number of characters: ";
+                std::getline(std::cin, textInput);
+
+                indexSpecifier = LineEditor::splitIntoVector(textInput);
+                LineEditor::deleteString(indexSpecifier[0], indexSpecifier[1], indexSpecifier[2], userText.userTextD);
+
+                std::cout << "\nString deleted. Line: " << indexSpecifier[0] << ", index: " << indexSpecifier[1] << ", length: " << indexSpecifier[2];
+
+                break;
+            case 11:
+
+                std::cin.ignore();
+                std::cout << "\nSpecify line, starting index, and number of characters: ";
+                std::getline(std::cin, textInput);
+
+                indexSpecifier = LineEditor::splitIntoVector(textInput);
+                LineEditor::cutString(indexSpecifier[0], indexSpecifier[1], indexSpecifier[2], userText.userTextD, exchangeBuffer);
+
+                std::cout << "\nString cut. Line: " << indexSpecifier[0] << ", index: " << indexSpecifier[1] << ", length: " << indexSpecifier[2];
+                std::cout << "\nExchange buffer: " << exchangeBuffer;
+
+                break;
+            case 12:
+
+                std::cin.ignore();
+                std::cout << "\nSpecify line, starting index, and number of characters: ";
+                std::getline(std::cin, textInput);
+
+                indexSpecifier = LineEditor::splitIntoVector(textInput);
+                LineEditor::pasteString(indexSpecifier[0], indexSpecifier[1], userText.userTextD, exchangeBuffer);
+
+                std::cout << "\nString pasted. Line: " << indexSpecifier[0] << ", index: " << indexSpecifier[1] << ", length: " << indexSpecifier[2];
+                std::cout << "\nExchange buffer: " << exchangeBuffer;
 
 
+                break;
+            case 13:
 
-        switch (cmdType)
-        {
-        case 1:
+                std::cin.ignore();
+                std::cout << "\nSpecify line, starting index, and number of characters: ";
+                std::getline(std::cin, textInput);
 
-            std::cin.ignore();
-            std::cout << "\nEnter text to append: ";
+                indexSpecifier = LineEditor::splitIntoVector(textInput);
+                LineEditor::copyString(indexSpecifier[0], indexSpecifier[1], indexSpecifier[2], userText.userTextD, exchangeBuffer);
 
-            std::getline(std::cin, textInput);
-            userText.appendText(textInput);
+                std::cout << "\nString copied. Line: " << indexSpecifier[0] << ", index: " << indexSpecifier[1] << ", length: " << indexSpecifier[2];
+                std::cout << "\nExchange buffer: " << exchangeBuffer;
 
-            std::cout << "\nText appended: " + textInput;
+                break;
+            case 14:
 
-            break;
-        case 2:
+                std::cin.ignore();
+                std::cout << "\nSpecify line, starting index, and number of characters: ";
+                std::getline(std::cin, textInput);
 
-            userText.printText();
-            std::cout << "\n";
+                indexSpecifier = LineEditor::splitIntoVector(textInput);
 
-            break;
-        case 3:
+                std::cin.ignore();
+                std::cout << "\nEnter text to insert: ";
+                std::getline(std::cin, textInput);
 
-            userText.addNewline();
-            std::cout << "\nNewline added.";
+                LineEditor::insertString(indexSpecifier[0], indexSpecifier[1], indexSpecifier[2], userText.userTextD, textInput);
 
-            break;
-        case 4:
+                std::cout << "\nString inserted. Line: " << indexSpecifier[0] << ", index: " << indexSpecifier[1] << ", length: " << indexSpecifier[2];
+                std::cout << "\nExchange buffer: " << exchangeBuffer;
 
-            std::cin.ignore();
-            std::cout << "\nInput file name: ";
-            std::getline(std::cin, filename);
+                break;
+            case 15:
+                //system('cls');
+                break;
+            case 99:
+                exit(0);
+                break;
+            default:
 
-            FileManager::writeToFile(filename, userText.userTextD);
-
-            std::cout << "\ntext written to file.";
-
-            break;
-        case 5:
-
-            std::cin.ignore();
-            std::cout << "\nInput file name: ";
-            std::getline(std::cin, filename);
-
-            FileManager::readFromFile(filename, userText.userTextD);
-
-            std::cout << "\ntext read from file.";
-
-            break;
-        case 8:
-
-            std::cin.ignore();
-            std::cout << "\nSpecify line, starting index, and number of characters: ";
-            std::getline(std::cin, textInput);
-
-            indexSpecifier = LineEditor::splitIntoVector(textInput);
-            LineEditor::deleteString(indexSpecifier[0], indexSpecifier[1], indexSpecifier[2], userText.userTextD);
-
-            std::cout << "\nString deleted. Line: " << indexSpecifier[0] << ", index: " << indexSpecifier[1] << ", length: " << indexSpecifier[2];
-
-            break;
-        case 11:
-
-            std::cin.ignore();
-            std::cout << "\nSpecify line, starting index, and number of characters: ";
-            std::getline(std::cin, textInput);
-
-            indexSpecifier = LineEditor::splitIntoVector(textInput);
-            LineEditor::cutString(indexSpecifier[0], indexSpecifier[1], indexSpecifier[2], userText.userTextD, exchangeBuffer);
-
-            std::cout << "\nString cut. Line: " << indexSpecifier[0] << ", index: " << indexSpecifier[1] << ", length: " << indexSpecifier[2];
-            std::cout << "\nExchange buffer: " << exchangeBuffer;
-
-            break;
-        case 12:
-
-            std::cin.ignore();
-            std::cout << "\nSpecify line, starting index, and number of characters: ";
-            std::getline(std::cin, textInput);
-
-            indexSpecifier = LineEditor::splitIntoVector(textInput);
-            LineEditor::pasteString(indexSpecifier[0], indexSpecifier[1], userText.userTextD, exchangeBuffer);
-
-            std::cout << "\nString pasted. Line: " << indexSpecifier[0] << ", index: " << indexSpecifier[1] << ", length: " << indexSpecifier[2];
-            std::cout << "\nExchange buffer: " << exchangeBuffer;
-
-
-            break;
-        case 13:
-
-            std::cin.ignore();
-            std::cout << "\nSpecify line, starting index, and number of characters: ";
-            std::getline(std::cin, textInput);
-
-            indexSpecifier = LineEditor::splitIntoVector(textInput);
-            LineEditor::copyString(indexSpecifier[0], indexSpecifier[1], indexSpecifier[2], userText.userTextD, exchangeBuffer);
-
-            std::cout << "\nString copied. Line: " << indexSpecifier[0] << ", index: " << indexSpecifier[1] << ", length: " << indexSpecifier[2];
-            std::cout << "\nExchange buffer: " << exchangeBuffer;
-
-            break;
-        case 14:
-
-            std::cin.ignore();
-            std::cout << "\nSpecify line, starting index, and number of characters: ";
-            std::getline(std::cin, textInput);
-
-            indexSpecifier = LineEditor::splitIntoVector(textInput);
-
-            std::cin.ignore();
-            std::cout << "\nEnter text to insert: ";
-            std::getline(std::cin, textInput);
-
-            LineEditor::insertString(indexSpecifier[0], indexSpecifier[1], indexSpecifier[2], userText.userTextD, textInput);
-
-            std::cout << "\nString inserted. Line: " << indexSpecifier[0] << ", index: " << indexSpecifier[1] << ", length: " << indexSpecifier[2];
-            std::cout << "\nExchange buffer: " << exchangeBuffer;
-
-            break;
-        case 15:
-            break;
-        case 99:
-            exit(0);
-            break;
-        default:
-
-            std::cout << "\n\n---=== List of commands ===---\n\n" << "8. Delete string.\n 11. Cut string. \n 12. Paste string. \n 13. Copy string. \n 14. Insert string.\n";
-            break;
+                std::cout << "\n\n---=== List of commands ===---\n\n" << "8. Delete string.\n 11. Cut string. \n 12. Paste string. \n 13. Copy string. \n 14. Insert string.\n";
+                break;
+            }
         }
     }
+};
+
+int main()
+{
+    Program program;
+
+    program.run();
 }
