@@ -17,12 +17,15 @@ public:
     }
 
     void printText() {
+
+        std::cout << std::endl;
         for (const std::vector<std::string>& line : userTextD) 
         {
             if (!line.empty()) {
                 for (const std::string& words : line) {
                     std::cout << words;
                 }
+                std::cout << " (" << line[0].size() << ")";
                 std::cout << std::endl;
             }
         }
@@ -97,7 +100,7 @@ public:
 
         if (lineIndex >= 0 && lineIndex < userText.size()) {
 
-            if (startIndex >= 0 && startIndex + numOfChars < userText[lineIndex][0].size()) {
+            if (startIndex >= 0 && startIndex + numOfChars <= userText[lineIndex][0].size()) {
                 userText[lineIndex][0].erase(userText[lineIndex][0].begin() + startIndex, userText[lineIndex][0].begin() + startIndex + numOfChars);
             }
             else {
@@ -127,7 +130,7 @@ public:
         }
     }
 
-    static void pasteString(size_t lineIndex, size_t startIndex, const std::vector<std::vector<std::string>>& userText, const std::string& exchangeBuffer) {
+    static void pasteString(size_t lineIndex, size_t startIndex, std::vector<std::vector<std::string>>& userText, const std::string& exchangeBuffer) {
         if (lineIndex >= 0 && lineIndex < userText.size()) {
 
             if (startIndex >= 0) {
@@ -143,14 +146,20 @@ public:
         }
     }
 
+    //can't copy a sentence into an entirely new row. I guess it's because I'm inserting into an index that doesn't exist yet, as opposed to appending.
     static void copyString(size_t lineIndex, size_t startIndex, size_t numOfChars, std::vector<std::vector<std::string>>& userText, std::string& exchangeBuffer) {
 
         if (lineIndex >= 0 && lineIndex < userText.size()) {
 
-            if (startIndex >= 0 && startIndex + numOfChars < userText[lineIndex][0].size()) {
+            if (startIndex >= 0 && startIndex + numOfChars <= userText[lineIndex][0].size()) {
 
-                exchangeBuffer = userText[lineIndex][0].substr(startIndex, numOfChars);
-                userText[lineIndex][0].erase(userText[lineIndex][0].begin() + startIndex, userText[lineIndex][0].begin() + startIndex + numOfChars);
+                clearExchangeBuffer(exchangeBuffer);
+
+                for (size_t i = startIndex; i < numOfChars; i++)
+                {
+                    exchangeBuffer += userText[lineIndex][0][i];
+                }
+                std::cout << userText[lineIndex][0].size();
             }
             else {
                 std::cerr << "\nerror: invalid line indices\n";
@@ -159,6 +168,28 @@ public:
         else {
             std::cerr << "\nerror: out of bounds line index\n";
         }
+    }
+
+    static void insertString(size_t lineIndex, size_t startIndex, size_t numOfChars, std::vector<std::vector<std::string>>& userText, std::string& textInput) {
+
+        if (lineIndex >= 0 && lineIndex < userText.size()) {
+
+            if (startIndex >= 0 && startIndex + numOfChars <= userText[lineIndex][0].size()) {
+
+                userText[lineIndex][0].erase(userText[lineIndex][0].begin() + startIndex, userText[lineIndex][0].begin() + startIndex + numOfChars);
+                userText[lineIndex][0].insert(startIndex, textInput);
+            }
+            else {
+                std::cerr << "\nerror: invalid line indices\n";
+            }
+        }
+        else {
+            std::cerr << "\nerror: out of bounds line index\n";
+        }
+    }
+
+    static void clearExchangeBuffer(std::string& exchangeBuffer) {  
+        exchangeBuffer = "";
     }
 };
 
@@ -177,6 +208,8 @@ int main()
 
         std::cout << "\nChoose a command (Line: " << userText.userTextD.size() << "): ";
         std::cin >> cmdType;
+
+
 
         switch (cmdType)
         {
@@ -232,9 +265,9 @@ int main()
             std::getline(std::cin, textInput);
 
             indexSpecifier = LineEditor::splitIntoVector(textInput);
-            LineEditor::deleteString(indexSpecifier[0],indexSpecifier[1], indexSpecifier[2], userText.userTextD);
+            LineEditor::deleteString(indexSpecifier[0], indexSpecifier[1], indexSpecifier[2], userText.userTextD);
 
-            std::cout << "\nString deleted at: " << indexSpecifier[0] << indexSpecifier[1] << indexSpecifier[2];
+            std::cout << "\nString deleted. Line: " << indexSpecifier[0] << ", index: " << indexSpecifier[1] << ", length: " << indexSpecifier[2];
 
             break;
         case 11:
@@ -246,7 +279,8 @@ int main()
             indexSpecifier = LineEditor::splitIntoVector(textInput);
             LineEditor::cutString(indexSpecifier[0], indexSpecifier[1], indexSpecifier[2], userText.userTextD, exchangeBuffer);
 
-            std::cout << "\nString deleted at: " << indexSpecifier[0] << indexSpecifier[1] << indexSpecifier[2];
+            std::cout << "\nString cut. Line: " << indexSpecifier[0] << ", index: " << indexSpecifier[1] << ", length: " << indexSpecifier[2];
+            std::cout << "\nExchange buffer: " << exchangeBuffer;
 
             break;
         case 12:
@@ -258,13 +292,41 @@ int main()
             indexSpecifier = LineEditor::splitIntoVector(textInput);
             LineEditor::pasteString(indexSpecifier[0], indexSpecifier[1], userText.userTextD, exchangeBuffer);
 
-            std::cout << "\nString deleted at: " << indexSpecifier[0] << indexSpecifier[1] << indexSpecifier[2];
+            std::cout << "\nString pasted. Line: " << indexSpecifier[0] << ", index: " << indexSpecifier[1] << ", length: " << indexSpecifier[2];
+            std::cout << "\nExchange buffer: " << exchangeBuffer;
 
 
             break;
         case 13:
+
+            std::cin.ignore();
+            std::cout << "\nSpecify line, starting index, and number of characters: ";
+            std::getline(std::cin, textInput);
+
+            indexSpecifier = LineEditor::splitIntoVector(textInput);
+            LineEditor::copyString(indexSpecifier[0], indexSpecifier[1], indexSpecifier[2], userText.userTextD, exchangeBuffer);
+
+            std::cout << "\nString copied. Line: " << indexSpecifier[0] << ", index: " << indexSpecifier[1] << ", length: " << indexSpecifier[2];
+            std::cout << "\nExchange buffer: " << exchangeBuffer;
+
             break;
         case 14:
+
+            std::cin.ignore();
+            std::cout << "\nSpecify line, starting index, and number of characters: ";
+            std::getline(std::cin, textInput);
+
+            indexSpecifier = LineEditor::splitIntoVector(textInput);
+
+            std::cin.ignore();
+            std::cout << "\nEnter text to insert: ";
+            std::getline(std::cin, textInput);
+
+            LineEditor::insertString(indexSpecifier[0], indexSpecifier[1], indexSpecifier[2], userText.userTextD, textInput);
+
+            std::cout << "\nString inserted. Line: " << indexSpecifier[0] << ", index: " << indexSpecifier[1] << ", length: " << indexSpecifier[2];
+            std::cout << "\nExchange buffer: " << exchangeBuffer;
+
             break;
         case 15:
             break;
@@ -272,6 +334,8 @@ int main()
             exit(0);
             break;
         default:
+
+            std::cout << "\n\n---=== List of commands ===---\n\n" << "8. Delete string.\n 11. Cut string. \n 12. Paste string. \n 13. Copy string. \n 14. Insert string.\n";
             break;
         }
     }
